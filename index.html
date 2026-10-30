@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>THE TEE - Order Online</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1e293b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; }
+
+    /* Top Floating Install Prompt Banner */
+    #pwa-banner {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      z-index: 99999;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #334155;
+      backdrop-filter: blur(8px);
+      padding: 12px 14px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: space-between;
+      color: #fff;
+    }
+    .banner-text { display: flex; flex-direction: column; }
+    .banner-title { font-size: 14px; font-weight: 700; color: #f8fafc; }
+    .banner-sub { font-size: 11px; color: #94a3b8; }
+    .banner-actions { display: flex; gap: 8px; }
+    .btn-install {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-close {
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      font-size: 16px;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+
+    /* Fullscreen Frame */
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Install Banner -->
+  <div id="pwa-banner">
+    <div class="banner-text">
+      <span class="banner-title">Install THE TEE App</span>
+      <span class="banner-sub">Tap to add quick order icon to home screen</span>
+    </div>
+    <div class="banner-actions">
+      <button class="btn-install" id="installBtn">Install</button>
+      <button class="btn-close" id="closeBtn">✕</button>
+    </div>
+  </div>
+
+  <!-- Capto Menu -->
+  <iframe src="https://capto.app/6q99kp" allow="geolocation; payment"></iframe>
+
+  <script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+
+    let deferredPrompt;
+    const banner = document.getElementById('pwa-banner');
+    const installBtn = document.getElementById('installBtn');
+    const closeBtn = document.getElementById('closeBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      banner.style.display = 'flex';
+
+      // Automatically pop up Chrome's native install bottom-sheet after 1 second
+      setTimeout(() => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+        }
+      }, 1000);
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          banner.style.display = 'none';
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    closeBtn.addEventListener('click', () => {
+      banner.style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      banner.style.display = 'none';
+      deferredPrompt = null;
+    });
+  </script>
+</body>
+</html>
